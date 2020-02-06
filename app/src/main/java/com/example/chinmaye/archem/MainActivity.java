@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity
     TextView tv;
     String formula;
     private static final float scale = 300.0f;
+    private ModelRenderable sunRenderable;
 
     @SuppressLint("VisibleForTests")
     @Override
@@ -138,7 +139,7 @@ public class MainActivity extends AppCompatActivity
         {
 
             Log.d("test1", "creating atom");
-            Node atomNode = createSphere((float) (a.x) / scale, 0f, (float) a.y / scale, .025f, anchorNode, nucleusMaterial);
+            Node atomNode = createSphere((float) (a.x) / scale, 0f, (float) a.y / scale, .0f, anchorNode, nucleusMaterial);
 
             for (int i = 0; i < a.protons; i++)
             {
@@ -188,7 +189,9 @@ public class MainActivity extends AppCompatActivity
                 ModelRenderable sphere1 = ShapeFactory.makeSphere(0f, new Vector3(0, 0, 0), material);
                 Anchor a = hits.get(0).createAnchor();
                 AnchorNode anchorNode = new AnchorNode(a);
-//                TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
+//                anchorNode.setParent();
+                arFragment.getArSceneView().getScene().addChild(anchorNode);
+                //                TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
 //                transformableNode.setRenderable(sphere1);
 //                transformableNode.setParent(anchorNode);
 //                //anchorNode.setLocalScale(new Vector3(.1f, .1f, .1f));
@@ -202,36 +205,66 @@ public class MainActivity extends AppCompatActivity
         return null;
     }
 
-    private Node createSphere2(float x, float y, float z, float radius, Node parent, Material material)
+    private Node createSphere1(float x, float y, float z, float radius, Node parent, Material material)
     {
         Log.d("test1",String.format("Create Sphere : %f %f %f %f",x,y,z,radius));
-//        Node ren=new Node();
-        TransformableNode ren=new TransformableNode(arFragment.getTransformationSystem());
-        //transformableNode.setRenderable(sphere);
-        ModelRenderable sphere2 = ShapeFactory.makeSphere(radius, new Vector3(x,y,z), material);
+        Node base = new Node();
+
+        Node sun = new Node();
+        sun.setParent(base);
+        sun.setLocalPosition(new Vector3(0.0f, 0.5f, 0.0f));
+
+        Node sunVisual = new Node();
+        sunVisual.setParent(sun);
+        sunVisual.setRenderable(sunRenderable);
+        sunVisual.setLocalScale(new Vector3(0.5f, 0.5f, 0.5f));
+
+
+        /*Node base = new Node();
+        Node ren=new Node();
+
+        ren.setParent(base);
+        ModelRenderable sphere2 = ShapeFactory.makeSphere(radius, new Vector3(0f,0.05f,0f), material);
         ren.setRenderable(sphere2);
-        ren.setParent(parent);
-        parent.addChild(ren);
-//        ren.setLocalPosition(new Vector3(x,y,z));
+        ren.setLocalScale(new Vector3(0.0f,0.5f,0.0f));
+        //TransformableNode ren=new TransformableNode(arFragment.getTransformationSystem());
+        //transformableNode.setRenderable(sphere);
+
+       //ren.setRenderable(sphere2);
+       //ren.setParent(parent);
+        //ren.setLocalPosition(new Vector3(x/scale,y/scale,z/scale));
+        //parent.addChild(ren);
+
 //        ren.setLocalRotation(new Quaternion(0,0,0,0));
 //        ren.setLocalScale(new Vector3(1,1,1));
+*/
 
-        return ren;
+        /*Node sun = new Node();
+        sun.setParent(base);
+        sun.setLocalPosition(new Vector3(0.0f, 0.5f, 0.0f));
+
+        Node sunVisual = new Node();
+        sunVisual.setParent(sun);
+        sunVisual.setRenderable(sunRenderable);
+        sunVisual.setLocalScale(new Vector3(0.5f, 0.5f, 0.5f));
+*/
+
+        return base;
     }
 
     private TransformableNode createSphere(float x, float y, float z, float radius, Node parent, Material material)
     {
         Log.d("test1", "createSphere: " + x + ", " + y + ", " + z + ", " + radius + ", " + parent);
-        ModelRenderable sphere = ShapeFactory.makeSphere(radius, new Vector3(x,y,z), material);
+        ModelRenderable sphere = ShapeFactory.makeSphere(radius, new Vector3(0,0,0), material);
         Log.d("test1", "aftercreateSphere: " + x + ", " + y + ", " + z + ", " + radius + ", " + parent);
         TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
         transformableNode.setRenderable(sphere);
-        transformableNode.setParent(parent);
+//        transformableNode.setParent(parent);
         parent.addChild(transformableNode);
-//        transformableNode.setLocalPosition(new Vector3(0.5f,0.5f,0.25f));
-        // ModelRenderable.setLocalScale(new Vector3(.1f, .1f, .1f));
-        arFragment.getArSceneView().getScene().addChild(transformableNode);
-        transformableNode.select();
+        transformableNode.setLocalPosition(new Vector3(x,y,z));
+        transformableNode.setLocalScale(new Vector3(1f, 1f, 1f));
+//        arFragment.getArSceneView().getScene().addChild(transformableNode);
+//        transformableNode.select();
         Log.d("test1", "sphere has created");
         return transformableNode;
     }
