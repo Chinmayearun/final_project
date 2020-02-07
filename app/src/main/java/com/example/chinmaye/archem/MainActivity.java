@@ -26,6 +26,7 @@ import com.google.ar.core.Trackable;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.NodeParent;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
@@ -42,6 +43,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import archem.entities.Atom;
+import archem.entities.MaterialType;
 import archem.entities.Molecule;
 import archem.entities.MoleculeCollection;
 
@@ -87,7 +89,7 @@ public class MainActivity extends AppCompatActivity
 //                addObject(Uri.parse("halo.sfb"));
 //                addObject(Uri.parse("halo.sfa"));
 //                MaterialFactory.makeTransparentWithColor(getApplicationContext(), new com.google.ar.sceneform.rendering.Color(1, 1, 1,1)).thenAccept(material ->
-                MaterialFactory.makeOpaqueWithColor(getApplicationContext(), new com.google.ar.sceneform.rendering.Color(1, 1, 1,1)).thenAccept(material ->
+                MaterialFactory.makeOpaqueWithColor(getApplicationContext(), new com.google.ar.sceneform.rendering.Color(1, 1, 1, 1)).thenAccept(material ->
                 {
                     Log.d("test1", "creating molecule " + material);
                     createMolecule(material);
@@ -116,61 +118,59 @@ public class MainActivity extends AppCompatActivity
 //        Log.d("test1","sphere6");
 
 
-        Molecule molecule = MoleculeCollection.getMolecule(formula);
-        AnchorNode anchorNode = getAnchorNode(material);
-
-        //AnchorNode anchorNode = getAnchorNode(material);
-        Log.d("test1", "achorNode" + anchorNode);
-
-        Material nucleusMaterial = material.makeCopy();
-        Color nucleusColor = new Color(1, 1, 0, .0f);
-        nucleusMaterial.setFloat4("color", nucleusColor);
-
-        Material protonMaterial = material.makeCopy();
-        Color protonColor = new Color(1, 0, 0, 1f);
-        protonMaterial.setFloat4("color", protonColor);
-
-        Material neutronMaterial = material.makeCopy();
-        Color neutronColor = new Color(0, 0, 1, 1f);
-        neutronMaterial.setFloat4("color", neutronColor);
-
-        Random r = new Random();
-        for (Atom a : molecule.atoms)
+        try
         {
+            Molecule molecule = MoleculeCollection.getMolecule(formula);
+            AnchorNode anchorNode = getAnchorNode(material);
 
-            Log.d("test1", "creating atom");
-            Node atomNode = createSphere((float) (a.x) / scale, 0f, (float) a.y / scale, .0f, anchorNode, nucleusMaterial);
+            //AnchorNode anchorNode = getAnchorNode(material);
+            Log.d("test1", "achorNode" + anchorNode);
 
-            for (int i = 0; i < a.protons; i++)
-            {
-                float x = (r.nextFloat() * 2) - 1;
-                float y = (r.nextFloat() * 2) - 1;
-                float z = (r.nextFloat() * 2) - 1;
-                createSphere((a.x + x) / scale, (0 + y) / scale, (a.y + z) / scale, 0.0025f, atomNode, protonMaterial);
-            }
-            for (int i = 0; i < a.neutrons; i++)
-            {
-                float x = (r.nextFloat() * 2) - 1;
-                float y = (r.nextFloat() * 2) - 1;
-                float z = (r.nextFloat() * 2) - 1;
-                createSphere((a.x + x) / scale, (0 + y) / scale, (a.y + z) / scale, 0.0025f, atomNode, neutronMaterial);
-            }
+            Material nucleusMaterial = material.makeCopy();
+            Color nucleusColor = new Color(1, 1, 0, .0f);
+            nucleusMaterial.setFloat4("color", nucleusColor);
 
-//            //add rings
-//            for (int i = 0; i < a.configuration.length; i++)
-//            {
-//                Material m = nucleusMaterial.makeCopy();
-//                m.setFloat3("color", new Color(.2f + i / 10f, .2f + i / 10f, .2f + i / 10f));
-//                TransformableNode atomNode1 = createCylinder((float) a.x / scale, 0f, (float) a.y / scale, (i + 1) * 10 / scale, 0.001f * (a.configuration.length - i), atomNode, m);
-//            }
+            Material protonMaterial = material.makeCopy();
+            Color protonColor = new Color(1, 0, 0, 1f);
+            protonMaterial.setFloat4("color", protonColor);
 
+            Material neutronMaterial = material.makeCopy();
+            Color neutronColor = new Color(0, 0, 1, 1f);
+            neutronMaterial.setFloat4("color", neutronColor);
 
-            for (Atom.Electron e : a.electrons)
-            {
-                Log.d("test1", "creating electron");
-//                createSphere((float) (e.x+a.x)/scale, 0f, (float) (a.y+e.y)/scale, .0005f, atomNode,material);
-                createSphere((float) (e.x + a.x) / scale, 0f, (float) (e.y + a.y) / scale, .005f, atomNode, material);
-            }
+            Map<MaterialType, Material> materialMap = new HashMap<>();
+            materialMap.put(MaterialType.NUCLEUS, nucleusMaterial);
+            materialMap.put(MaterialType.PROTON, protonMaterial);
+            materialMap.put(MaterialType.NEUTRON, neutronMaterial);
+            materialMap.put(MaterialType.ELECTRON, material);
+
+            Log.d("test1", "Building molecule");
+            molecule.buildMolecule(arFragment, anchorNode, materialMap);
+            Log.d("test1", "Molecule built");
+
+            showChildren(arFragment.getArSceneView().getScene(), 0);
+        }
+        catch (Exception e)
+        {
+            Log.e("test1","Failed",e);
+        }
+
+        //arFragment.getArSceneView().getScene().addChild(anchorNode);
+
+    }
+
+    private void showChildren(NodeParent n, int depth)
+    {
+        String s = "";
+        for (int i = 0; i < depth; i++)
+            s += "\t";
+        Log.d("test1",s);
+
+        Log.d("test1",n.toString());
+
+        for (Node n2 : n.getChildren())
+        {
+            showChildren(n2, depth + 1);
         }
     }
 
@@ -205,9 +205,9 @@ public class MainActivity extends AppCompatActivity
         return null;
     }
 
-    private Node createSphere1(float x, float y, float z, float radius, Node parent, Material material)
+    public static Node createSphere1(float x, float y, float z, float radius, Node parent, Material material)
     {
-        Log.d("test1",String.format("Create Sphere : %f %f %f %f",x,y,z,radius));
+        Log.d("test1", String.format("Create Sphere : %f %f %f %f", x, y, z, radius));
         Node base = new Node();
 
         Node sun = new Node();
@@ -216,7 +216,7 @@ public class MainActivity extends AppCompatActivity
 
         Node sunVisual = new Node();
         sunVisual.setParent(sun);
-        sunVisual.setRenderable(sunRenderable);
+//        sunVisual.setRenderable(sunRenderable);
         sunVisual.setLocalScale(new Vector3(0.5f, 0.5f, 0.5f));
 
 
@@ -252,22 +252,6 @@ public class MainActivity extends AppCompatActivity
         return base;
     }
 
-    private TransformableNode createSphere(float x, float y, float z, float radius, Node parent, Material material)
-    {
-        Log.d("test1", "createSphere: " + x + ", " + y + ", " + z + ", " + radius + ", " + parent);
-        ModelRenderable sphere = ShapeFactory.makeSphere(radius, new Vector3(0,0,0), material);
-        Log.d("test1", "aftercreateSphere: " + x + ", " + y + ", " + z + ", " + radius + ", " + parent);
-        TransformableNode transformableNode = new TransformableNode(arFragment.getTransformationSystem());
-        transformableNode.setRenderable(sphere);
-//        transformableNode.setParent(parent);
-        parent.addChild(transformableNode);
-        transformableNode.setLocalPosition(new Vector3(x,y,z));
-        transformableNode.setLocalScale(new Vector3(1f, 1f, 1f));
-//        arFragment.getArSceneView().getScene().addChild(transformableNode);
-//        transformableNode.select();
-        Log.d("test1", "sphere has created");
-        return transformableNode;
-    }
 
     private TransformableNode createCylinder(float x, float y, float z, float radius, float height, Node parent, Material material)
     {

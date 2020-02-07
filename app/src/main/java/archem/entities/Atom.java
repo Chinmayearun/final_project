@@ -1,16 +1,29 @@
 package archem.entities;
 
+import android.util.Log;
+
+import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.rendering.Material;
+import com.google.ar.sceneform.ux.ArFragment;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 public class Atom implements Cloneable
 {
+
     public class Electron
     {
+        Node n;
         public double x;
         public double y;
+        public int r;
+        public float theta;
+        public float deltatheta;
 
         public Electron(double x, double y)
         {
@@ -57,6 +70,8 @@ public class Atom implements Cloneable
     public List<Electron> electrons = new ArrayList<>();
     public List<Integer> orbitRadius = new ArrayList<>();
 
+    Node atomNode;
+
     public Atom(String name, String symbol, int n, float a,int protons,int neutrons, int... configuration)
     {
         this.name = name;
@@ -83,6 +98,8 @@ public class Atom implements Cloneable
                 double y = radius * Math.sin(ra);
 
                 Electron e = new Electron(x, y);
+                e.r=radius;
+                e.theta=(float)ra;
                 electrons.add(e);
             }
         }
@@ -120,4 +137,44 @@ public class Atom implements Cloneable
                 ", orbitRadius=" + orbitRadius +
                 '}';
     }
+
+    public void buildAtom(ArFragment arFragment,Node moleculeNode, Map<MaterialType, Material> materialMap)
+    {
+        Random r = new Random();
+        Log.d("test1", "creating atom");
+        Node atomNode = Util.createSphere(arFragment,(float) (x) / Util.scale, 0f, (float) y / Util.scale, .0f, moleculeNode, materialMap.get(MaterialType.NUCLEUS));
+//        moleculeNode.addChild(atomNode);
+
+        for (int i = 0; i < protons; i++)
+        {
+            float x = (r.nextFloat() * 2) - 1;
+            float y = (r.nextFloat() * 2) - 1;
+            float z = (r.nextFloat() * 2) - 1;
+            Util.createSphere(arFragment,(float)(x) / Util.scale, (float)(0 + y) / Util.scale, (z) / Util.scale, 0.0025f, atomNode, materialMap.get(MaterialType.PROTON));
+        }
+        for (int i = 0; i < neutrons; i++)
+        {
+            float x = (r.nextFloat() * 2) - 1;
+            float y = (r.nextFloat() * 2) - 1;
+            float z = (r.nextFloat() * 2) - 1;
+            Util.createSphere(arFragment,(x) /Util.scale, (0 + y) / Util.scale, (z) /Util.scale, 0.0025f,atomNode, materialMap.get(MaterialType.NEUTRON));
+        }
+
+//            //add rings
+//            for (int i = 0; i < a.configuration.length; i++)
+//            {
+//                Material m = nucleusMaterial.makeCopy();
+//                m.setFloat3("color", new Color(.2f + i / 10f, .2f + i / 10f, .2f + i / 10f));
+//                TransformableNode atomNode1 = createCylinder((float) a.x / scale, 0f, (float) a.y / scale, (i + 1) * 10 / scale, 0.001f * (a.configuration.length - i), atomNode, m);
+//            }
+
+
+        for (Atom.Electron e : electrons)
+        {
+            Log.d("test1", "creating electron");
+//                createSphere((float) (e.x+a.x)/scale, 0f, (float) (a.y+e.y)/scale, .0005f, atomNode,material);
+            e.n=Util.createSphere(arFragment,(float) (e.x ) / Util.scale, 0f, (float) (e.y) /Util.scale, .005f,atomNode, materialMap.get(MaterialType.ELECTRON));
+        }
+    }
+
 }

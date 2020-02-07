@@ -1,9 +1,13 @@
 package archem.entities;
+import com.google.ar.sceneform.Node;
+
 import java.util.Arrays;
 
 public abstract class Bond implements Cloneable
 {
     Molecule molecule;
+
+    Node bondNode;
 
     public abstract void init();
 

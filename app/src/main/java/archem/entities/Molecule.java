@@ -1,6 +1,14 @@
 package archem.entities;
 
+import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.Node;
+import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.rendering.Material;
+import com.google.ar.sceneform.ux.ArFragment;
+import com.google.ar.sceneform.ux.TransformableNode;
+
 import java.util.Arrays;
+import java.util.Map;
 
 public class Molecule implements Cloneable
 {
@@ -9,6 +17,8 @@ public class Molecule implements Cloneable
     public String formula;
     public Atom atoms[];
     public Bond bonds[];
+
+    Node moleculeNode;
 
     public Molecule(String formula, Atom[] atoms, Bond[] bonds)
     {
@@ -80,5 +90,19 @@ public class Molecule implements Cloneable
                 ", atoms=" + Arrays.toString(atoms) +
                 ", bonds=" + Arrays.toString(bonds) +
                 '}';
+    }
+
+    public void buildMolecule(ArFragment arFragment,AnchorNode anchorNode, Map<MaterialType, Material> materialMap)
+    {
+        moleculeNode=Util.createSphere(arFragment,0, 0, 0, 0.0f, anchorNode,materialMap.get(MaterialType.NUCLEUS));
+
+        //moleculeNode=new TransformableNode(arFragment.getTransformationSystem());
+        //anchorNode.addChild(moleculeNode);
+//        anchorNode.setLocalPosition(new Vector3(0,0.05f,0));
+
+        for(Atom a : atoms)
+        {
+            a.buildAtom(arFragment,moleculeNode,materialMap);
+        }
     }
 }
